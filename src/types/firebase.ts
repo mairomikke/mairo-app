@@ -199,4 +199,5 @@ export interface FbActivityFilters extends FbPaginationParams {
   location?: string
   minPrice?: number
   maxPrice?: number
+  tags?: string[]
 }
