@@ -135,7 +135,7 @@ export default function ActivitiesPage() {
                         <p className="text-sm font-medium text-gray-900 truncate">{act.title}</p>
                         <p className="text-xs text-gray-400 truncate">{act.location ?? '場所未定'}</p>
                       </div>
-                      <p className="text-sm font-semibold text-indigo-600 shrink-0">{formatCurrency(act.price)}</p>
+                      <p className="text-sm font-semibold text-indigo-600 shrink-0">{formatCurrency(act.price ?? 0)}</p>
                     </CardContent>
                   </Card>
                 </Link>
