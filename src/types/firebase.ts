@@ -34,8 +34,8 @@ export interface FbActivity {
   appeal_points?: string[]
   status?: 'draft' | 'published' | 'cancelled' | 'completed'
   image_url?: string
-  created_at?: unknown
-  updated_at?: unknown
+  created_at?: string
+  updated_at?: string
 }
 
 export interface FbSession {
@@ -50,7 +50,7 @@ export interface FbSession {
   created_by: string
   verification_level: 'none' | 'instructor' | 'org'
   capacity?: number
-  created_at?: unknown
+  created_at?: string
 }
 
 export interface FbBooking {
@@ -59,7 +59,7 @@ export interface FbBooking {
   session_id: string
   status: 'reserved' | 'completed' | 'cancelled'
   source: 'app' | 'manual'
-  created_at?: unknown
+  created_at?: string
 }
 
 export interface FbAttendance {
@@ -67,7 +67,7 @@ export interface FbAttendance {
   booking_id: string
   status: 'present' | 'absent' | 'late'
   verified_by: string | null
-  created_at?: unknown
+  created_at?: string
 }
 
 export interface FbReflection {
@@ -75,7 +75,7 @@ export interface FbReflection {
   user_id: string
   session_id: string
   content: string
-  created_at?: unknown
+  created_at?: string
 }
 
 export interface FbFeedback {
@@ -85,14 +85,14 @@ export interface FbFeedback {
   instructor_id: string
   content: string
   rating?: number
-  created_at?: unknown
+  created_at?: string
 }
 
 export interface FbConversation {
   id: string
   participant_ids: string[]
   type: 'direct' | 'group' | 'org'
-  created_at?: unknown
+  created_at?: string
 }
 
 export interface FbMessage {
@@ -124,7 +124,7 @@ export interface FbReview {
   instructor_id: string | null
   rating: number
   comment: string | null
-  created_at?: unknown
+  created_at?: string
 }
 
 export interface FbProfilePrivate {
