@@ -16,30 +16,10 @@ import type {
 // 既存UIとの型互換ブリッジ
 export type Booking = FbBooking
 
-export type BookingWithDetails = FbBookingWithSession & {
-  // 既存UIが参照するフィールドに合わせたシェイプ
+import type { BookingWithDetails as DBBookingWithDetails } from '@/types/database'
 
-  activity_schedule: FbSession & {
-    id: string
-    schedule_id: string
-    date_time: string
-
-    // 追加（Vercelエラー対応）
-    updated_at: unknown
-
-    activity: FbActivity & {
-      organization: { id: string; name: string } | null
-    }
-  }
-
-  user: FbUser
-
-  payment_status: 'pending' | 'paid'
-
-  // Firestore / UI互換のため追加（Vercelエラー対応）
-  schedule_id: string
-  updated_at: unknown
-}
+// 既存UIとの型互換ブリッジ（完全統一）
+export type BookingWithDetails = DBBookingWithDetails
 
 const KEY = 'bookings'
 
