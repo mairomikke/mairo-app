@@ -18,10 +18,15 @@ export type Booking = FbBooking
 
 export type BookingWithDetails = FbBookingWithSession & {
   // 既存UIが参照するフィールドに合わせたシェイプ
+
   activity_schedule: FbSession & {
     id: string
     schedule_id: string
-    date_time: string // date を date_time として公開
+    date_time: string
+
+    // 追加（Vercelエラー対応）
+    updated_at: unknown
+
     activity: FbActivity & {
       organization: { id: string; name: string } | null
     }
