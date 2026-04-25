@@ -196,7 +196,5 @@ export interface FbActivityFilters extends FbPaginationParams {
   organization_id?: string
   status?: FbActivity['status']
   search?: string
-
-  minPrice?: number
-  maxPrice?: number
+  location?: string
 }
