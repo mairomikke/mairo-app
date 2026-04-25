@@ -1,9 +1,6 @@
 -- Seed data for development
 -- Note: Run after schema.sql
--- Passwords are handled by Supabase Auth, these are just profile entries
-
--- Insert sample organizations (after auth users are created)
--- This is a reference seed - actual user IDs will vary
+-- Passwords are handled by Auth, these are just profile entries
 
 -- Categories reference
 -- 'sports', 'arts', 'music', 'academic', 'technology', 'outdoor', 'cooking', 'language'

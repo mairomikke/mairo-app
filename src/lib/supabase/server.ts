@@ -1,4 +1,3 @@
-// DISABLED: Supabase → Firebase 移行済み
 // このファイルは import エラーを防ぐためスタブとして残しています。
 
 /* eslint-disable @typescript-eslint/no-explicit-any */

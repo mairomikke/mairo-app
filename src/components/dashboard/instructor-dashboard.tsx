@@ -7,7 +7,6 @@ import {
   MapPin, ChevronRight, Building2, Star, Send, Megaphone,
   CheckCircle2, Circle, ArrowLeft, Plus, BookOpen,
 } from 'lucide-react'
-// DISABLED: import { createClient } from '@/lib/supabase/client'
 import { useAuthStore } from '@/stores/auth-store'
 import { cn, formatDate, formatTime, formatDateTime, formatCurrency } from '@/lib/utils'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -229,7 +228,6 @@ function ParticipantManager({ activityId, activityTitle, onBack }: {
       {participants.map((p) => (
         <Card key={p.id} className="overflow-hidden">
           <CardContent className="p-0">
-            {/* Header row */}
             <div className="flex items-center gap-4 p-4 border-b border-gray-100">
               <div className="h-11 w-11 rounded-full bg-gradient-to-br from-indigo-400 to-purple-500 flex items-center justify-center text-white font-semibold text-sm shrink-0">
                 {p.name[0]}
@@ -238,7 +236,6 @@ function ParticipantManager({ activityId, activityTitle, onBack }: {
                 <p className="font-semibold text-gray-900">{p.name}</p>
                 <p className="text-xs text-gray-400">年齢: {p.age}歳 · ID: {p.id}</p>
               </div>
-              {/* Attendance */}
               <button onClick={() => toggleAttendance(p.id)}
                 className={cn('flex items-center gap-1.5 text-xs font-semibold rounded-lg px-3 py-2 transition-all', p.attended ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500 hover:bg-gray-200')}>
                 {p.attended ? <CheckCircle2 className="h-4 w-4" /> : <Circle className="h-4 w-4" />}
@@ -250,7 +247,6 @@ function ParticipantManager({ activityId, activityTitle, onBack }: {
               </button>
             </div>
 
-            {/* Feedback */}
             <div className="p-4 space-y-3">
               <div className="flex items-center justify-between">
                 <p className="text-xs font-medium text-gray-500">フィードバック</p>
@@ -262,7 +258,6 @@ function ParticipantManager({ activityId, activityTitle, onBack }: {
                 )}
               </div>
 
-              {/* Past feedback */}
               {expandedFeedback === p.id && p.pastFeedback.length > 0 && (
                 <div className="space-y-2 bg-gray-50 rounded-lg p-3">
                   {p.pastFeedback.map((fb, i) => (
@@ -279,7 +274,6 @@ function ParticipantManager({ activityId, activityTitle, onBack }: {
                 </div>
               )}
 
-              {/* New feedback */}
               <div className="space-y-2">
                 <div className="flex items-center gap-1">
                   {[1,2,3,4,5].map((s) => (
@@ -299,7 +293,6 @@ function ParticipantManager({ activityId, activityTitle, onBack }: {
         </Card>
       ))}
 
-      {/* Join org (new space) */}
       <Card className="border-dashed border-2 border-gray-200">
         <CardContent className="p-4">
           {joinOrgOpen ? (
@@ -338,7 +331,6 @@ function ActivityCard({ act, orgColor, onManage }: {
   return (
     <Card className={cn('overflow-hidden transition-shadow hover:shadow-md', isToday && 'ring-2 ring-indigo-400')}>
       <CardContent className="p-0">
-        {/* Summary row */}
         <div className="flex items-center gap-3 p-4">
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 mb-1">
@@ -351,14 +343,11 @@ function ActivityCard({ act, orgColor, onManage }: {
               <span className="flex items-center gap-1"><Clock className="h-3 w-3" />{act.datetime}</span>
             </div>
           </div>
-          <div className="flex flex-col items-end gap-2 shrink-0">
-            <button onClick={() => setExpanded((v) => !v)} className="text-xs text-indigo-600 hover:text-indigo-700 font-medium">
-              {expanded ? '閉じる ▲' : '詳細 ▼'}
-            </button>
-          </div>
+          <button onClick={() => setExpanded((v) => !v)} className="text-xs text-indigo-600 hover:text-indigo-700 font-medium">
+            {expanded ? '閉じる ▲' : '詳細 ▼'}
+          </button>
         </div>
 
-        {/* Occupancy bar */}
         <div className="px-4 pb-2">
           <div className="flex justify-between text-xs text-gray-400 mb-1">
             <span>参加率</span>
@@ -369,7 +358,6 @@ function ActivityCard({ act, orgColor, onManage }: {
           </div>
         </div>
 
-        {/* Expanded detail */}
         {expanded && (
           <div className="px-4 pb-4 pt-2 space-y-2 border-t border-gray-100 bg-gray-50">
             <div className="grid grid-cols-2 gap-2 text-xs">
@@ -400,16 +388,11 @@ export function InstructorDashboard({ userId }: InstructorDashboardProps) {
 
   useEffect(() => {
     async function fetchData() {
-      // DISABLED (Supabase): const supabase = createClient()
       const now = new Date().toISOString()
-      // DISABLED (Supabase): const { data, error } = await supabase
-        .from('activity_schedules')
-        .select('*, activity:activities(*)')
-        .eq('instructor_id', userId)
-        .gte('date_time', now)
-        .order('date_time', { ascending: true })
-        .limit(20)
-      if (!error) setSchedules((data ?? []) as unknown as ScheduleWithActivity[])
+
+      const data: ScheduleWithActivity[] = []
+
+      setSchedules(data)
       setLoading(false)
     }
     fetchData()
@@ -419,7 +402,6 @@ export function InstructorDashboard({ userId }: InstructorDashboardProps) {
   const todayStr = today.toDateString()
   const todaySchedules = schedules.filter((s) => new Date(s.date_time).toDateString() === todayStr)
 
-  // Participant manager overlay
   if (managingActivity) {
     return (
       <div className="max-w-7xl mx-auto p-4 lg:p-8">
@@ -434,7 +416,6 @@ export function InstructorDashboard({ userId }: InstructorDashboardProps) {
 
   return (
     <div className="space-y-8 max-w-4xl mx-auto">
-      {/* Greeting */}
       <div>
         <h1 className="text-2xl font-bold text-gray-900">
           こんにちは、{user?.name ?? 'インストラクター'}さん
@@ -442,37 +423,17 @@ export function InstructorDashboard({ userId }: InstructorDashboardProps) {
         <p className="text-gray-500 mt-1">{formatDate(today)}</p>
       </div>
 
-      {/* Today's sessions (top priority) */}
       {todaySchedules.length > 0 && (
         <section>
           <h2 className="text-base font-semibold text-gray-900 mb-3 flex items-center gap-2">
             <span className="h-2 w-2 rounded-full bg-indigo-500 animate-pulse" />
             今日のセッション
           </h2>
-          <div className="space-y-2">
-            {todaySchedules.map((s) => (
-              <Card key={s.id} className="border-indigo-200 bg-indigo-50">
-                <CardContent className="p-4 flex items-center justify-between gap-4">
-                  <div>
-                    <p className="font-semibold text-gray-900">{s.activity.title}</p>
-                    <div className="flex gap-3 text-xs text-gray-500 mt-1">
-                      <span className="flex items-center gap-1"><Clock className="h-3 w-3" />{formatTime(s.date_time)}</span>
-                      {s.activity.location && <span className="flex items-center gap-1"><MapPin className="h-3 w-3" />{s.activity.location}</span>}
-                      <span className="flex items-center gap-1"><Users className="h-3 w-3" />定員{s.capacity}名</span>
-                    </div>
-                  </div>
-                  <Badge variant="success">今日</Badge>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
         </section>
       )}
 
-      {/* Orgs & Activities (dummy) */}
       {DUMMY_ORGS.map((org) => (
         <section key={org.id}>
-          {/* Org header card */}
           <div className={cn('rounded-xl p-4 mb-3 text-white bg-gradient-to-r', org.color)}>
             <div className="flex items-center gap-3">
               <Building2 className="h-5 w-5 opacity-80" />

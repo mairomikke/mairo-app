@@ -2,13 +2,12 @@
 
 import { useState, useEffect } from 'react'
 import { useAuthStore } from '@/stores/auth-store'
-// DISABLED: import { createClient } from '@/lib/supabase/client'
 import { formatCurrency } from '@/lib/utils'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { TrendingUp, Users, CreditCard, BarChart2, RefreshCw } from 'lucide-react'
-import { format, subDays, parseISO, isSameDay } from 'date-fns'
+import { format, subDays, parseISO } from 'date-fns'
 import { ja } from 'date-fns/locale'
 
 type DateRange = '7d' | '30d' | '90d' | 'custom'
@@ -85,17 +84,8 @@ export default function OrgAnalyticsPage() {
 
   useEffect(() => {
     if (!user) return
-    // DISABLED (Supabase): const supabase = createClient()
-    // DISABLED (Supabase): supabase
-      .from('organization_members')
-      .select('organization_id')
-      .eq('user_id', user.id)
-      .eq('status', 'active')
-      .limit(1)
-      .single()
-      .then(({ data: m }) => {
-        if (m) { setOrgId((m as unknown as { organization_id: string }).organization_id) }
-      })
+    // Supabase削除 → ダミーorgId
+    setOrgId('dummy-org')
   }, [user])
 
   useEffect(() => {
@@ -118,101 +108,26 @@ export default function OrgAnalyticsPage() {
   async function loadAnalytics() {
     if (!orgId) return
     setLoading(true)
-    // DISABLED (Supabase): const supabase = createClient()
-    const { from, to } = getDateRange()
 
-    // Fetch all relevant bookings
-    // DISABLED (Supabase): const { data: bookings } = await supabase
-      .from('bookings')
-      .select(`
-        id, status, payment_status, created_at, user_id,
-        activity_schedules!inner(
-          date_time, activity_id,
-          activities!inner(id, title, price, organization_id)
-        )
-      `)
-      .eq('activity_schedules.activities.organization_id', orgId)
-      .neq('status', 'cancelled')
-      .gte('created_at', from.toISOString())
-      .lte('created_at', to.toISOString())
-
-    if (!bookings) { setLoading(false); return }
-
-    const typedBookings = bookings as unknown as Array<{
-      id: string
-      status: string
-      payment_status: string
-      created_at: string
-      user_id: string
-      activity_schedules: {
-        date_time: string
-        activity_id: string
-        activities: { id: string; title: string; price: number; organization_id: string }
-      }
-    }>
-
-    // Total revenue (paid bookings only)
-    const totalRevenue = typedBookings
-      .filter((b) => b.payment_status === 'paid')
-      .reduce((sum, b) => sum + (b.activity_schedules?.activities?.price ?? 0), 0)
-
-    const totalBookings = typedBookings.length
-    const uniqueStudentIds = new Set(typedBookings.map((b) => b.user_id))
-    const uniqueStudents = uniqueStudentIds.size
-
-    // Retention: students with more than 1 booking
-    const studentBookingCount: Record<string, number> = {}
-    for (const b of typedBookings) {
-      studentBookingCount[b.user_id] = (studentBookingCount[b.user_id] ?? 0) + 1
-    }
-    const repeatStudents = Object.values(studentBookingCount).filter((c) => c > 1).length
-    const retentionRate = uniqueStudents > 0 ? Math.round((repeatStudents / uniqueStudents) * 100) : 0
-
-    // Daily revenue
-    const dayCount = Math.ceil((to.getTime() - from.getTime()) / (1000 * 60 * 60 * 24))
-    const dailyMap: Record<string, DailyRevenue> = {}
-    for (let i = 0; i <= Math.min(dayCount, 89); i++) {
-      const d = subDays(to, Math.min(dayCount, 89) - i)
-      const key = format(d, 'yyyy-MM-dd')
-      dailyMap[key] = { date: key, revenue: 0, bookings: 0 }
-    }
-    for (const b of typedBookings) {
-      const key = format(parseISO(b.created_at), 'yyyy-MM-dd')
-      if (dailyMap[key]) {
-        dailyMap[key].bookings += 1
-        if (b.payment_status === 'paid') {
-          dailyMap[key].revenue += b.activity_schedules?.activities?.price ?? 0
-        }
-      }
-    }
-    const dailyRevenue = Object.values(dailyMap)
-
-    // Top activities
-    const activityMap: Record<string, { title: string; count: number }> = {}
-    for (const b of typedBookings) {
-      const act = b.activity_schedules?.activities
-      if (!act) continue
-      if (!activityMap[act.id]) activityMap[act.id] = { title: act.title, count: 0 }
-      activityMap[act.id].count += 1
-    }
-    const topActivities = Object.entries(activityMap)
-      .map(([id, v]) => ({ activityId: id, title: v.title, count: v.count }))
-      .sort((a, b) => b.count - a.count)
-      .slice(0, 5)
-
-    // Payment breakdown
-    const paid = typedBookings.filter((b) => b.payment_status === 'paid').length
-    const pending = typedBookings.filter((b) => b.payment_status === 'pending').length
-
+    // Supabase削除 → ダミーデータ
     setData({
-      totalRevenue,
-      totalBookings,
-      uniqueStudents,
-      retentionRate,
-      dailyRevenue,
-      topActivities,
-      paymentBreakdown: { paid, pending },
+      totalRevenue: 120000,
+      totalBookings: 85,
+      uniqueStudents: 42,
+      retentionRate: 38,
+      dailyRevenue: Array.from({ length: 14 }).map((_, i) => ({
+        date: format(subDays(new Date(), 13 - i), 'yyyy-MM-dd'),
+        revenue: Math.floor(Math.random() * 10000),
+        bookings: Math.floor(Math.random() * 10),
+      })),
+      topActivities: [
+        { activityId: '1', title: 'サッカー', count: 30 },
+        { activityId: '2', title: 'ダンス', count: 22 },
+        { activityId: '3', title: '水泳', count: 18 },
+      ],
+      paymentBreakdown: { paid: 60, pending: 25 },
     })
+
     setLoading(false)
   }
 

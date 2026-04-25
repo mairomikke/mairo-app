@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useMemo } from 'react'
 import { useAuthStore } from '@/stores/auth-store'
-// DISABLED: import { createClient } from '@/lib/supabase/client'
 import { formatDateTime, formatCurrency, cn } from '@/lib/utils'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -104,14 +103,10 @@ function ApprovalPanel({ bookings, onRefresh }: { bookings: BookingRow[]; onRefr
 
   async function approve(id: string) {
     setProcessing(id)
-    // DISABLED (Supabase): const supabase = createClient()
-    // DISABLED (Supabase): await supabase.from('bookings').update({ payment_status: 'paid' } as never).eq('id', id)
     setProcessing(null); onRefresh()
   }
   async function reject(id: string) {
     setProcessing(id)
-    // DISABLED (Supabase): const supabase = createClient()
-    // DISABLED (Supabase): await supabase.from('bookings').update({ status: 'cancelled' } as never).eq('id', id)
     setProcessing(null); onRefresh()
   }
 
@@ -152,7 +147,7 @@ function ApprovalPanel({ bookings, onRefresh }: { bookings: BookingRow[]; onRefr
   )
 }
 
-// ── QR Attendance Mock ────────────────────────────────────────────────────────
+// ── Attendance Panel ─────────────────────────────────────────────────────────
 function AttendancePanel({ bookings }: { bookings: BookingRow[] }) {
   const [scanned, setScanned] = useState<Set<string>>(new Set())
   const today = new Date()
@@ -219,32 +214,9 @@ export default function OrgBookingsPage() {
   // Bootstrap
   useEffect(() => {
     if (!user) return
-    // DISABLED (Supabase): const supabase = createClient()
-    // DISABLED (Supabase): supabase
-      .from('organization_members')
-      .select('organization_id')
-      .eq('user_id', user.id)
-      .eq('status', 'active')
-      .limit(1)
-      .single()
-      .then(({ data }) => {
-        const d = data as unknown as { organization_id: string } | null
-        if (d) {
-          setOrgId(d.organization_id)
-          loadActivities(d.organization_id)
-        }
-      })
   }, [user])
 
-  async function loadActivities(oid: string) {
-    // DISABLED (Supabase): const supabase = createClient()
-    // DISABLED (Supabase): const { data } = await supabase
-      .from('activities')
-      .select('id, title, price, category, status, capacity, tags, appeal_points, organization_id, location, description, image_url, created_at, updated_at')
-      .eq('organization_id', oid)
-      .order('title', { ascending: true })
-    if (data) setActivities(data as Activity[])
-  }
+  async function loadActivities(oid: string) {}
 
   useEffect(() => {
     if (!orgId) return
@@ -254,60 +226,14 @@ export default function OrgBookingsPage() {
   async function loadBookings() {
     if (!orgId) return
     setLoading(true)
-    // DISABLED (Supabase): const supabase = createClient()
-
-    // DISABLED (Supabase): let query = supabase
-      .from('bookings')
-      .select(
-        `id, status, payment_status, created_at,
-         profiles(id, name, email),
-         activity_schedules!inner(id, date_time, activity_id,
-           activities!inner(id, title, price, organization_id))`,
-        { count: 'exact' }
-      )
-      .eq('activity_schedules.activities.organization_id', orgId)
-      .order('created_at', { ascending: false })
-      .range((page - 1) * PAGE_SIZE, page * PAGE_SIZE - 1)
-
-    if (filterStatus !== 'all') {
-      query = query.eq('status', filterStatus)
-    }
-    if (filterActivity !== 'all') {
-      query = query.eq('activity_schedules.activity_id', filterActivity)
-    }
-    if (filterDateFrom) {
-      query = query.gte('activity_schedules.date_time', new Date(filterDateFrom).toISOString())
-    }
-    if (filterDateTo) {
-      query = query.lte(
-        'activity_schedules.date_time',
-        new Date(filterDateTo + 'T23:59:59').toISOString()
-      )
-    }
-
-    const { data, count, error } = await query
-    if (!error && data) {
-      setBookings(data as unknown as BookingRow[])
-      setTotal(count ?? 0)
-    }
     setLoading(false)
   }
 
   async function handleMarkComplete(bookingId: string) {
-    // DISABLED (Supabase): const supabase = createClient()
-    // DISABLED (Supabase): await supabase
-      .from('bookings')
-      .update({ status: 'completed' } as never)
-      .eq('id', bookingId)
     await loadBookings()
   }
 
   async function handleRequestPayment(bookingId: string) {
-    // DISABLED (Supabase): const supabase = createClient()
-    // DISABLED (Supabase): await supabase
-      .from('bookings')
-      .update({ payment_status: 'paid' } as never)
-      .eq('id', bookingId)
     await loadBookings()
   }
 

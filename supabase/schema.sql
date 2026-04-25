@@ -5,9 +5,9 @@ CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 -- USERS & ROLES
 -- ============================================================
 
--- Profiles (extends Supabase auth.users)
+-- Profiles (standalone, no auth dependency)
 CREATE TABLE public.profiles (
-  id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
+  id UUID PRIMARY KEY,
   email TEXT NOT NULL,
   name TEXT NOT NULL,
   avatar_url TEXT,
@@ -155,10 +155,6 @@ CREATE TABLE public.messages (
 
 CREATE INDEX idx_messages_sender ON public.messages(sender_id);
 CREATE INDEX idx_messages_receiver ON public.messages(receiver_id);
-CREATE INDEX idx_messages_thread ON public.messages(
-  LEAST(sender_id::TEXT, receiver_id::TEXT),
-  GREATEST(sender_id::TEXT, receiver_id::TEXT)
-);
 
 -- ============================================================
 -- REVIEWS
@@ -202,8 +198,6 @@ CREATE TABLE public.notifications (
   metadata JSONB DEFAULT '{}',
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
-
-CREATE INDEX idx_notifications_user ON public.notifications(user_id, is_read);
 
 -- ============================================================
 -- REFLECTIONS
@@ -262,7 +256,6 @@ CREATE TABLE public.qr_auth (
 -- HELPER FUNCTIONS
 -- ============================================================
 
--- Auto-update updated_at
 CREATE OR REPLACE FUNCTION update_updated_at()
 RETURNS TRIGGER AS $$
 BEGIN

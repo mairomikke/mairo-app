@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from 'react'
 import { useAuthStore } from '@/stores/auth-store'
-// DISABLED: import { createClient } from '@/lib/supabase/client'
 import { formatDateTime, formatDate, formatTime } from '@/lib/utils'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -66,52 +65,19 @@ export default function OrgSchedulesPage() {
   const [submitting, setSubmitting] = useState(false)
   const [deleting, setDeleting] = useState(false)
 
-  // Bootstrap org
   useEffect(() => {
     if (!user) return
-    // DISABLED (Supabase): const supabase = createClient()
-    // DISABLED (Supabase): supabase
-      .from('organization_members')
-      .select('organization_id')
-      .eq('user_id', user.id)
-      .eq('status', 'active')
-      .limit(1)
-      .single()
-      .then(({ data }) => {
-        const d = data as unknown as { organization_id: string } | null
-        if (d) {
-          setOrgId(d.organization_id)
-          loadActivities(d.organization_id)
-          loadInstructors(d.organization_id)
-        }
-      })
+    setOrgId('mock-org')
+    loadActivities('mock-org')
+    loadInstructors('mock-org')
   }, [user])
 
   async function loadActivities(oid: string) {
-    // DISABLED (Supabase): const supabase = createClient()
-    // DISABLED (Supabase): const { data } = await supabase
-      .from('activities')
-      .select('*')
-      .eq('organization_id', oid)
-      .order('title', { ascending: true })
-    if (data) {
-      const acts = data as unknown as Activity[]
-      setActivities(acts)
-      if (acts.length > 0) setSelectedActivity(acts[0].id)
-    }
+    setActivities([])
   }
 
   async function loadInstructors(oid: string) {
-    // DISABLED (Supabase): const supabase = createClient()
-    // DISABLED (Supabase): const { data } = await supabase
-      .from('organization_members')
-      .select('profiles(*)')
-      .eq('organization_id', oid)
-      .eq('role', 'instructor')
-      .eq('status', 'active')
-    if (data) {
-      setInstructors(data.map((m: any) => m.profiles).filter(Boolean) as Profile[])
-    }
+    setInstructors([])
   }
 
   useEffect(() => {
@@ -121,13 +87,7 @@ export default function OrgSchedulesPage() {
 
   async function loadSchedules() {
     setLoading(true)
-    // DISABLED (Supabase): const supabase = createClient()
-    // DISABLED (Supabase): const { data } = await supabase
-      .from('activity_schedules')
-      .select('*, profiles(*)')
-      .eq('activity_id', selectedActivity)
-      .order('date_time', { ascending: true })
-    if (data) setSchedules(data as unknown as ScheduleWithInstructor[])
+    setSchedules([])
     setLoading(false)
   }
 
@@ -161,30 +121,10 @@ export default function OrgSchedulesPage() {
     }
     setSubmitting(true)
     setFormError('')
-    // DISABLED (Supabase): const supabase = createClient()
-    const dateTime = new Date(`${form.date}T${form.time}:00`).toISOString()
 
     if (editSchedule) {
-      // DISABLED (Supabase): const { error } = await supabase
-        .from('activity_schedules')
-        .update({
-          date_time: dateTime,
-          capacity: cap,
-          instructor_id: form.instructor_id || null,
-        } as never)
-        .eq('id', editSchedule.id)
-      if (error) { setFormError(error.message); setSubmitting(false); return }
       setEditSchedule(null)
     } else {
-      // DISABLED (Supabase): const { error } = await supabase
-        .from('activity_schedules')
-        .insert({
-          activity_id: selectedActivity,
-          date_time: dateTime,
-          capacity: cap,
-          instructor_id: form.instructor_id || null,
-        } as never)
-      if (error) { setFormError(error.message); setSubmitting(false); return }
       setAddOpen(false)
     }
 
@@ -195,19 +135,11 @@ export default function OrgSchedulesPage() {
   async function handleDelete() {
     if (!deleteSchedule) return
     setDeleting(true)
-    // DISABLED (Supabase): const supabase = createClient()
-    // DISABLED (Supabase): const { error } = await supabase
-      .from('activity_schedules')
-      .delete()
-      .eq('id', deleteSchedule.id)
-    if (!error) {
-      setDeleteSchedule(null)
-      await loadSchedules()
-    }
+    setDeleteSchedule(null)
+    await loadSchedules()
     setDeleting(false)
   }
 
-  // Calendar helpers
   const monthStart = startOfMonth(currentMonth)
   const monthEnd = endOfMonth(currentMonth)
   const calStart = startOfWeek(monthStart, { weekStartsOn: 1 })

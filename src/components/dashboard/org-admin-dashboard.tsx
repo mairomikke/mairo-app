@@ -6,7 +6,6 @@ import {
   DollarSign, BarChart3, Users, CalendarDays, Clock, TrendingUp,
   Plus, ChevronRight, CheckCircle2, Bell, Target, AlertCircle, Circle,
 } from 'lucide-react'
-// DISABLED: import { createClient } from '@/lib/supabase/client'
 import { useOrganizationBookings } from '@/hooks/use-bookings'
 import { cn, formatCurrency, formatDateTime } from '@/lib/utils'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -115,25 +114,12 @@ interface OrgAdminDashboardProps { userId: string }
 export function OrgAdminDashboard({ userId }: OrgAdminDashboardProps) {
   const [org, setOrg] = useState<Organization | null>(null)
   const [activities, setActivities] = useState<Activity[]>([])
-  const [orgLoading, setOrgLoading] = useState(true)
+  const [orgLoading, setOrgLoading] = useState(false)
   const [tasks, setTasks] = useState(DUMMY_TASKS)
   const [notices, setNotices] = useState(DUMMY_NOTICES)
 
   useEffect(() => {
-    async function fetchOrg() {
-      // DISABLED (Supabase): const supabase = createClient()
-      // DISABLED (Supabase): const { data: memberDataRaw } = await supabase.from('organization_members').select('organization_id').eq('user_id', userId).eq('role', 'admin').limit(1).single()
-      const memberData = memberDataRaw as { organization_id: string } | null
-      if (!memberData) { setOrgLoading(false); return }
-      const [orgRes, activitiesRes] = await Promise.all([
-        // DISABLED (Supabase): supabase.from('organizations').select('*').eq('id', memberData.organization_id).single(),
-        // DISABLED (Supabase): supabase.from('activities').select('*').eq('organization_id', memberData.organization_id).eq('status', 'published').order('created_at', { ascending: false }).limit(10),
-      ])
-      if (!orgRes.error) setOrg(orgRes.data as Organization)
-      if (!activitiesRes.error) setActivities((activitiesRes.data ?? []) as Activity[])
-      setOrgLoading(false)
-    }
-    fetchOrg()
+    setOrgLoading(false)
   }, [userId])
 
   const orgId = org?.id ?? ''

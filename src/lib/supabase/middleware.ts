@@ -1,4 +1,3 @@
-// Firebase 移行後、Supabase ミドルウェアは不要。
 // このファイルは proxy.ts からの参照を維持するため残しています。
 import { NextResponse, type NextRequest } from 'next/server'
 

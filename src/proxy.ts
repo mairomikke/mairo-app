@@ -1,8 +1,7 @@
 import { type NextRequest } from 'next/server'
-// DISABLED: import { updateSession } from '@/lib/supabase/middleware'
 
 export async function proxy(request: NextRequest) {
-  return await updateSession(request)
+  return request
 }
 
 export const config = {
