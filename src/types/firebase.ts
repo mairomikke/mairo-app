@@ -43,7 +43,7 @@ export interface FbSession {
   id: string
   activity_id: string
   title: string
-  date: string                    // ISO string
+  date: string
   location: string
   instructor_id: string | null
   organization_id: string
@@ -52,6 +52,7 @@ export interface FbSession {
   verification_level: 'none' | 'instructor' | 'org'
   capacity?: number
   created_at?: string
+  updated_at?: string
 }
 
 export interface FbBooking {
@@ -61,6 +62,7 @@ export interface FbBooking {
   status: 'reserved' | 'completed' | 'cancelled'
   source: 'app' | 'manual'
   created_at?: string
+  updated_at?: string
 }
 
 export interface FbAttendance {
@@ -69,6 +71,7 @@ export interface FbAttendance {
   status: 'present' | 'absent' | 'late'
   verified_by: string | null
   created_at?: string
+  updated_at?: string
 }
 
 export interface FbReflection {
@@ -77,6 +80,7 @@ export interface FbReflection {
   session_id: string
   content: string
   created_at?: string
+  updated_at?: string
 }
 
 export interface FbFeedback {
@@ -87,6 +91,7 @@ export interface FbFeedback {
   content: string
   rating?: number
   created_at?: string
+  updated_at?: string
 }
 
 export interface FbConversation {
@@ -94,6 +99,7 @@ export interface FbConversation {
   participant_ids: string[]
   type: 'direct' | 'group' | 'org'
   created_at?: string
+  updated_at?: string
 }
 
 export interface FbMessage {
@@ -126,6 +132,7 @@ export interface FbReview {
   rating: number
   comment: string | null
   created_at?: string
+  updated_at?: string
 }
 
 export interface FbProfilePrivate {
@@ -146,60 +153,4 @@ export interface FbParticipationSummary {
   total_sessions: number
   by_category: Record<string, number>
   last_updated: string
-}
-
-// ---- Insert helpers (omit auto-fields) --------------------------------
-
-export type FbActivityInsert = Omit<FbActivity, 'id' | 'created_at'>
-export type FbSessionInsert = Omit<FbSession, 'id' | 'created_at'>
-export type FbBookingInsert = Omit<FbBooking, 'id' | 'created_at'>
-export type FbAttendanceInsert = Omit<FbAttendance, 'id' | 'created_at'>
-export type FbReflectionInsert = Omit<FbReflection, 'id' | 'created_at'>
-export type FbFeedbackInsert = Omit<FbFeedback, 'id' | 'created_at'>
-export type FbMessageInsert = Omit<FbMessage, 'id'>
-export type FbNotificationInsert = Omit<FbNotification, 'id'>
-export type FbReviewInsert = Omit<FbReview, 'id' | 'created_at'>
-
-// ---- Joined / enriched types ------------------------------------------
-
-export interface FbSessionWithActivity extends FbSession {
-  activity: FbActivity | null
-}
-
-export interface FbBookingWithSession extends FbBooking {
-  session: FbSession | null
-  activity: FbActivity | null
-}
-
-export interface FbMessageThread {
-  conversation: FbConversation
-  partner: FbUser | null
-  last_message: FbMessage | null
-  unread_count: number
-}
-
-// ---- Pagination -------------------------------------------------------
-
-export interface FbPaginatedResponse<T> {
-  data: T[]
-  count: number
-  page: number
-  pageSize: number
-  totalPages: number
-}
-
-export interface FbPaginationParams {
-  page?: number
-  pageSize?: number
-}
-
-export interface FbActivityFilters extends FbPaginationParams {
-  category?: string
-  organization_id?: string
-  status?: FbActivity['status']
-  search?: string
-  minPrice?: number
-  maxPrice?: number
-  location?: string
-  tags?: string[]
 }

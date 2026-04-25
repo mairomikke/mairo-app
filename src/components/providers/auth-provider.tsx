@@ -5,7 +5,7 @@ import { onAuthStateChanged } from 'firebase/auth'
 import { auth } from '@/lib/firebase/client'
 import { getOne } from '@/lib/firebase/firestore'
 import { useAuthStore } from '@/stores/auth-store'
-import type { FbUser } from '@/types/firebase'
+import type { Profile } from '@/types/database'
 
 interface AuthProviderProps {
   children: React.ReactNode

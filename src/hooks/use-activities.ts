@@ -19,7 +19,9 @@ export type ActivityFilters = FbActivityFilters
 
 const KEY = 'activities'
 
-async function fetchActivities(filters: FbActivityFilters = {}): Promise<FbActivity[]> {
+async function fetchActivities(
+  filters: FbActivityFilters = {}
+): Promise<Activity[]> {
   const constraints = []
 
   const status = filters.status ?? 'published'
@@ -28,6 +30,7 @@ async function fetchActivities(filters: FbActivityFilters = {}): Promise<FbActiv
   if (filters.category) {
     constraints.push(where('category', '==', filters.category))
   }
+
   if (filters.organization_id) {
     constraints.push(where('organization_id', '==', filters.organization_id))
   }
@@ -39,17 +42,21 @@ async function fetchActivities(filters: FbActivityFilters = {}): Promise<FbActiv
 
   const items = await getMany<FbActivity>('activities', constraints)
 
-  // クライアントサイドでのsearchフィルタ（Firestoreはfull-text非対応）
+  // Firestore → UI型変換（ここが重要）
+  const mapped = items.map(toActivity)
+
+  // クライアントサイド検索
   if (filters.search) {
     const s = filters.search.toLowerCase()
-    return items.filter(
+
+    return mapped.filter(
       (a) =>
-        a.title?.toLowerCase().includes(s) ||
-        a.description?.toLowerCase().includes(s)
+        a.title?.toLowerCase().toLowerCase().includes(s) ||
+        a.description?.toLowerCase().toLowerCase().includes(s)
     )
   }
 
-  return items
+  return mapped
 }
 
 async function fetchActivity(id: string): Promise<FbActivity & { activity_schedules: FbSession[] }> {

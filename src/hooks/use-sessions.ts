@@ -4,7 +4,12 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { where, orderBy } from 'firebase/firestore'
 import { auth } from '@/lib/firebase/client'
 import { getMany, getOne, addOne, updateOne } from '@/lib/firebase/firestore'
-import type { FbSession, FbSessionInsert, FbActivity, FbSessionWithActivity } from '@/types/firebase'
+import type {
+  FbSession,
+  FbSessionInsert,
+  FbActivity,
+  FbSessionWithActivity
+} from '@/types/firebase'
 
 export type Session = FbSession
 export type SessionWithActivity = FbSessionWithActivity
@@ -32,16 +37,23 @@ async function fetchSessions(filters: {
 
   const sessions = await getMany<FbSession>('sessions', constraints)
 
-  // 各 session の activity を取得（重複IDはキャッシュ）
   const activityCache = new Map<string, FbActivity | null>()
 
   return Promise.all(
     sessions.map(async (s) => {
-      if (!activityCache.has(s.activity_id)) {
-        const act = await getOne<FbActivity>('activities', s.activity_id)
-        activityCache.set(s.activity_id, act)
+      const activityId = s.activity_id
+
+      if (!activityCache.has(activityId)) {
+        const act = activityId
+          ? await getOne<FbActivity>('activities', activityId)
+          : null
+        activityCache.set(activityId, act ?? null)
       }
-      return { ...s, activity: activityCache.get(s.activity_id) ?? null }
+
+      return {
+        ...s,
+        activity: activityCache.get(activityId) ?? null,
+      }
     })
   )
 }
@@ -75,10 +87,15 @@ export function useSession(id: string) {
     queryFn: async () => {
       const session = await getOne<FbSession>('sessions', id)
       if (!session) throw new Error('Session not found')
+
       const activity = session.activity_id
         ? await getOne<FbActivity>('activities', session.activity_id)
         : null
-      return { ...session, activity }
+
+      return {
+        ...session,
+        activity: activity ?? null,
+      }
     },
     enabled: !!id,
     staleTime: 60_000,
@@ -99,7 +116,13 @@ export function useCreateSession() {
 export function useUpdateSession() {
   const qc = useQueryClient()
   return useMutation({
-    mutationFn: async ({ id, updates }: { id: string; updates: Partial<FbSession> }) => {
+    mutationFn: async ({
+      id,
+      updates,
+    }: {
+      id: string
+      updates: Partial<FbSession>
+    }) => {
       await updateOne('sessions', id, updates)
       return { id, ...updates } as FbSession
     },

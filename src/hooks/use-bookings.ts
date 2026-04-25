@@ -1,149 +1,96 @@
 'use client'
 
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { where, orderBy } from 'firebase/firestore'
-import { auth } from '@/lib/firebase/client'
-import { getMany, getOne, addOne, updateOne } from '@/lib/firebase/firestore'
-import type {
-  FbBooking,
-  FbBookingInsert,
-  FbSession,
-  FbActivity,
-  FbUser,
-  FbBookingWithSession,
-} from '@/types/firebase'
+import { useQuery } from '@tanstack/react-query'
+import { db } from '@/lib/firebase'
+import {
+  collection,
+  getDocs,
+  query,
+  where,
+  orderBy,
+} from 'firebase/firestore'
 
-// 既存UIとの型互換ブリッジ
-export type Booking = FbBooking
+import type { Profile } from '@/types/database'
 
-import type { BookingWithDetails as DBBookingWithDetails } from '@/types/database'
-
-// 既存UIとの型互換ブリッジ（完全統一）
-export type BookingWithDetails = DBBookingWithDetails
-
-const KEY = 'bookings'
-
-function toBookingWithDetails(
-  booking: FbBooking,
-  session: FbSession | null,
-  activity: FbActivity | null,
-  user: FbUser | null
-): BookingWithDetails {
-  const actWithOrg = activity
-    ? { ...activity, organization: { id: activity.organization_id, name: '' } }
-    : null
-
+function mapBooking(doc: any): Profile {
+  const data = doc.data()
   return {
-    ...booking,
-    session,
-    activity,
-    payment_status: booking.status === 'completed' ? 'paid' : 'pending',
+    id: doc.id,
+    user_id: data.user_id ?? '',
+    schedule_id: data.session_id ?? '',
+    status: data.status ?? 'reserved',
+    payment_status: data.payment_status ?? 'pending',
+    created_at: data.created_at ?? '',
+    updated_at: data.updated_at ?? '',
+
     activity_schedule: {
-      ...(session ?? ({} as FbSession)),
-      date_time: session?.date ?? '',
-      activity: actWithOrg ?? ({} as FbActivity & { organization: null }),
+      id: data.session?.id ?? '',
+      activity_id: data.session?.activity_id ?? '',
+      date_time: data.session?.date ?? '',
+      capacity: data.session?.capacity ?? 0,
+      instructor_id: data.session?.instructor_id ?? null,
+      created_at: data.session?.created_at ?? '',
+      updated_at: data.session?.updated_at ?? '',
+
+      activity: {
+        id: data.activity?.id ?? '',
+        organization_id: data.activity?.organization_id ?? '',
+        title: data.activity?.title ?? '',
+        description: data.activity?.description ?? null,
+        category: data.activity?.category ?? '',
+        price: data.activity?.price ?? 0,
+        capacity: data.activity?.capacity ?? 0,
+        location: data.activity?.location ?? null,
+        tags: data.activity?.tags ?? [],
+        appeal_points: data.activity?.appeal_points ?? [],
+        status: data.activity?.status ?? 'published',
+        image_url: data.activity?.image_url ?? null,
+        created_at: data.activity?.created_at ?? '',
+        updated_at: data.activity?.updated_at ?? '',
+
+        organization: {
+          id: data.activity?.organization?.id ?? '',
+          name: data.activity?.organization?.name ?? '',
+          description: null,
+          type: '',
+          years_active: 0,
+          logo_url: null,
+          created_by: '',
+          created_at: '',
+          updated_at: '',
+        },
+      },
     },
-    user: user ?? ({} as FbUser),
+
+    import { toProfile } from '@/lib/firebase/mappers/profile'
+    
+    user: data.user ? toProfile(data.user) : null,
   }
 }
 
-async function fetchUserBookings(): Promise<BookingWithDetails[]> {
-  const uid = auth.currentUser?.uid
-  if (!uid) throw new Error('Not authenticated')
-
-  const bookings = await getMany<FbBooking>('bookings', [
-    where('user_id', '==', uid),
-    orderBy('created_at', 'desc'),
-  ])
-
-  // 各 booking の session / activity / user を並列取得
-  return Promise.all(
-    bookings.map(async (b) => {
-      const [session, user] = await Promise.all([
-        getOne<FbSession>('sessions', b.session_id),
-        getOne<FbUser>('users', b.user_id),
-      ])
-      const activity = session ? await getOne<FbActivity>('activities', session.activity_id) : null
-      return toBookingWithDetails(b, session, activity, user)
-    })
-  )
-}
-
-async function fetchOrganizationBookings(orgId: string): Promise<BookingWithDetails[]> {
-  if (!orgId) return []
-
-  // org の sessions を先に取得
-  const sessions = await getMany<FbSession>('sessions', [
-    where('organization_id', '==', orgId),
-  ])
-  const sessionIds = sessions.map((s) => s.id)
-
-  if (sessionIds.length === 0) return []
-
-  // sessions に紐づく bookings (Firestoreのin制限: 30件)
-  const chunks: string[][] = []
-  for (let i = 0; i < sessionIds.length; i += 30) {
-    chunks.push(sessionIds.slice(i, i + 30))
-  }
-
-  const allBookings: FbBooking[] = []
-  for (const chunk of chunks) {
-    const bs = await getMany<FbBooking>('bookings', [
-      where('session_id', 'in', chunk),
-      orderBy('created_at', 'desc'),
-    ])
-    allBookings.push(...bs)
-  }
-
-  const sessionMap = new Map(sessions.map((s) => [s.id, s]))
-
-  return Promise.all(
-    allBookings.map(async (b) => {
-      const session = sessionMap.get(b.session_id) ?? null
-      const [activity, user] = await Promise.all([
-        session ? getOne<FbActivity>('activities', session.activity_id) : Promise.resolve(null),
-        getOne<FbUser>('users', b.user_id),
-      ])
-      return toBookingWithDetails(b, session, activity, user)
-    })
-  )
-}
-
-export function useBookings() {
+export function useBookings(params?: {
+  userId?: string
+  status?: string
+  pageSize?: number
+}) {
   return useQuery({
-    queryKey: [KEY, 'user'],
-    queryFn: fetchUserBookings,
-    staleTime: 60_000,
-  })
-}
+    queryKey: ['bookings', params],
+    queryFn: async () => {
+      const ref = collection(db, 'bookings')
 
-export function useOrganizationBookings(orgId: string) {
-  return useQuery({
-    queryKey: [KEY, 'organization', orgId],
-    queryFn: () => fetchOrganizationBookings(orgId),
-    enabled: !!orgId,
-    staleTime: 60_000,
-  })
-}
+      let q = query(ref, orderBy('created_at', 'desc'))
 
-export function useCreateBooking() {
-  const qc = useQueryClient()
-  return useMutation({
-    mutationFn: async (input: FbBookingInsert) => {
-      const id = await addOne<FbBookingInsert>('bookings', input)
-      return { id, ...input } as FbBooking
+      if (params?.userId) {
+        q = query(q, where('user_id', '==', params.userId))
+      }
+
+      if (params?.status) {
+        q = query(q, where('status', '==', params.status))
+      }
+
+      const snap = await getDocs(q)
+
+      return snap.docs.map(mapBooking)
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: [KEY] }),
-  })
-}
-
-export function useCancelBooking() {
-  const qc = useQueryClient()
-  return useMutation({
-    mutationFn: async (bookingId: string) => {
-      await updateOne('bookings', bookingId, { status: 'cancelled' })
-      return bookingId
-    },
-    onSuccess: () => qc.invalidateQueries({ queryKey: [KEY] }),
   })
 }

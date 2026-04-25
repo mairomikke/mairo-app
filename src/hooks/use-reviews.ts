@@ -7,7 +7,7 @@ import { getMany, addOne } from '@/lib/firebase/firestore'
 import type { FbReview, FbReviewInsert, FbUser } from '@/types/firebase'
 
 export type Review = FbReview
-export type ReviewWithUser = FbReview & { user: FbUser | null }
+export type ReviewWithUser = FbReview & { user: Profile | null }
 
 const KEY = 'reviews'
 
