@@ -10,6 +10,7 @@ export interface FbUser {
   email: string
   name: string
   avatar_url: string | null
+  bio?: string
 }
 
 export interface FbOrganizationMember {
