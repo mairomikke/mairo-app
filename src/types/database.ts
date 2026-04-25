@@ -38,7 +38,7 @@ export interface Profile {
   avatar_url: string | null;
   bio: string | null;
   created_at: string;
-  updated_at: string;
+  updated_at?: string;
 }
 
 export interface UserRole {
@@ -57,7 +57,7 @@ export interface Organization {
   logo_url: string | null;
   created_by: string;
   created_at: string;
-  updated_at: string;
+  updated_at?: string;
 }
 
 export interface OrganizationMember {
@@ -76,24 +76,24 @@ export interface Activity {
   description: string | null;
   category: string;
   price: number;
-  capacity: number;
+  capacity?: number;
   location: string | null;
   tags: string[];
   appeal_points: string[];
   status: ActivityStatus;
   image_url: string | null;
   created_at: string;
-  updated_at: string;
+  updated_at?: string ;
 }
 
 export interface ActivitySchedule {
   id: string;
   activity_id: string;
   date_time: string;
-  capacity: number;
+  capacity?: number;
   instructor_id: string | null;
   created_at: string;
-  updated_at: string;
+  updated_at?: string;
 }
 
 export interface Booking {
@@ -103,7 +103,7 @@ export interface Booking {
   status: BookingStatus;
   payment_status: PaymentStatus;
   created_at: string;
-  updated_at: string;
+  updated_at?: string;
 }
 
 export interface Payment {
@@ -114,7 +114,7 @@ export interface Payment {
   amount: number;
   status: PaymentRecordStatus;
   created_at: string;
-  updated_at: string;
+  updated_at?: string;
 }
 
 export interface Message {
@@ -162,7 +162,7 @@ export interface Reflection {
   activity_id: string;
   content: string;
   created_at: string;
-  updated_at: string;
+  updated_at?: string;
 }
 
 export interface AIAnalysis {
@@ -173,7 +173,7 @@ export interface AIAnalysis {
   insights: AIInsight[];
   status: AIAnalysisStatus;
   created_at: string;
-  updated_at: string;
+  updated_at?: string;
 }
 
 export interface Report {
@@ -190,7 +190,7 @@ export interface QRAuth {
   user_id: string;
   qr_data: string;
   created_at: string;
-  updated_at: string;
+  updated_at?: string;
 }
 
 // ---- Nested / Enriched Types ----
