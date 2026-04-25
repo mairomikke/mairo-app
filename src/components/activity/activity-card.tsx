@@ -3,10 +3,10 @@
 import Link from 'next/link'
 import { MapPin, Star } from 'lucide-react'
 import { cn, formatCurrency } from '@/lib/utils'
-import type { Activity } from '@/types/database'
+import type { FbActivity } from '@/types/firebase'
 
 interface ActivityCardProps {
-  activity: Activity
+  activity: FbActivity
   organizationName?: string
   averageRating?: number
   reviewCount?: number

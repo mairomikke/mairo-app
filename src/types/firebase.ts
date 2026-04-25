@@ -35,6 +35,7 @@ export interface FbActivity {
   status?: 'draft' | 'published' | 'cancelled' | 'completed'
   image_url?: string
   created_at?: unknown
+  updated_at?: unknown
 }
 
 export interface FbSession {
@@ -196,8 +197,8 @@ export interface FbActivityFilters extends FbPaginationParams {
   organization_id?: string
   status?: FbActivity['status']
   search?: string
-  location?: string
   minPrice?: number
   maxPrice?: number
+  location?: string
   tags?: string[]
 }
